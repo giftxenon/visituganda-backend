@@ -1,0 +1,48 @@
+server:
+  port: ${PORT:8080}   # Render injects PORT automatically
+
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+#server:
+# port: 8080
+  # ← This is correct! Spring Boot runs on 8080
+  #spring:
+    #datasource:
+    #url: jdbc:postgresql://localhost:8833/visituganda   # PostgreSQL port = 8833
+    #username: postgres
+    #password: VisitUganda@2025
+  #driver-class-name: org.postgresql.Driver
+
+    #jpa:
+  #hibernate:
+    # ddl-auto: update
+      #show-sql: true
+      #properties:
+    # hibernate:
+      #  dialect: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  jwt:
+    secret: visitafrica-super-secret-jwt-key-2025-change-in-production!!
+    expiration-ms: 86400000   # 24 hours – perfect
+
+logging:
+  level:
+    web: ERROR
+    org.springframework.web: DEBUG  # Changed to DEBUG for error details
+    org.springframework.boot.autoconfigure: ERROR
+    org.springframework.security: DEBUG
+    ug.visituganda.visituganda.security: DEBUG
