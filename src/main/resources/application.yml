@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8080}   # Render injects PORT automatically
+  port: ${PORT:8080}  # Render injects PORT automatically
 
 spring:
   datasource:
