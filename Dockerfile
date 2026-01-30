@@ -5,10 +5,13 @@ WORKDIR /app
 # Copy all project files
 COPY . .
 
+# Give execute permission to mvnw (Linux requirement)
+RUN chmod +x mvnw
+
 # Build the project
 RUN ./mvnw clean package -DskipTests
 
-# Expose port 8080 (Render injects PORT)
+# Expose port 8080 (Render uses this)
 EXPOSE 8080
 
 # Run the Spring Boot application
