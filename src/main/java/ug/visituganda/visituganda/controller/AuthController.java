@@ -2,6 +2,7 @@ package ug.visituganda.visituganda.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ug.visituganda.visituganda.dto.LoginRequest;
@@ -22,21 +23,39 @@ public class AuthController {
 
     @PostMapping("/register/business")
     public ResponseEntity<AuthenticationResponse> registerBusiness(
-            @RequestBody BusinessRegisterRequest request) {
-        return ResponseEntity.ok(authService.registerBusiness(request));
+            @Valid @RequestBody BusinessRegisterRequest request) {
+        try {
+            AuthenticationResponse response = authService.registerBusiness(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            // Always return JSON even on errors
+            AuthenticationResponse errorResponse = new AuthenticationResponse(
+                    null, null, null, null, null, null, null
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
             @RequestBody LoginRequest request) {
         try {
-            return ResponseEntity.ok(loginService.login(request));
+            LoginResponse response = loginService.login(request);
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(new LoginResponse(
                     false,
                     ex.getMessage(),
                     null, null, null, null
             ));
+        } catch (Exception ex) {
+            // Fallback for unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new LoginResponse(
+                            false,
+                            "An unexpected error occurred. Please try again.",
+                            null, null, null, null
+                    ));
         }
     }
 
@@ -45,23 +64,20 @@ public class AuthController {
             @Valid @RequestBody CustomerRegisterRequest request) {
 
         try {
-            // Call service to register customer
             AuthenticationResponse response = authService.registerCustomer(request);
             return ResponseEntity.ok(response);
-        } catch (RuntimeException ex) {
-            // Return an AuthenticationResponse with all fields null except message if needed
+        } catch (IllegalArgumentException ex) {
+            // Known validation error
             AuthenticationResponse errorResponse = new AuthenticationResponse(
-                    null,       // token
-                    null,       // userType
-                    null,       // redirectUrl
-                    null,       // userId
-                    null,       // username
-                    null,       // email
-                    null        // msisdn
+                    null, null, null, null, null, null, null
             );
-
-            // Optionally, log or handle ex.getMessage() elsewhere if you want to send it separately
-            return ResponseEntity.badRequest().body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception ex) {
+            // Catch-all for unexpected errors
+            AuthenticationResponse errorResponse = new AuthenticationResponse(
+                    null, null, null, null, null, null, null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }
