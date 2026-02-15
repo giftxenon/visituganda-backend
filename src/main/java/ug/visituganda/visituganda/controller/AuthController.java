@@ -37,27 +37,38 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         try {
-            LoginResponse response = loginService.login(request);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(loginService.login(request));
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(new LoginResponse(
-                    false,
-                    ex.getMessage(),
-                    null, null, null, null
-            ));
-        } catch (Exception ex) {
-            // Fallback for unexpected errors
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new LoginResponse(
+            return ResponseEntity.badRequest().body(
+                    new LoginResponse(
+                            null,
                             false,
-                            "An unexpected error occurred. Please try again.",
-                            null, null, null, null
-                    ));
+                            ex.getMessage(),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                    )
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new LoginResponse(
+                            null,
+                            false,
+                            "An unexpected error occurred",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                    )
+            );
         }
     }
+
 
     @PostMapping("/register/customer")
     public ResponseEntity<AuthenticationResponse> registerCustomer(

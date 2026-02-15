@@ -43,6 +43,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private UserType userType;        // ← NOT static! Remove "static" here
 
+
     // Spring Security authorities based on userType
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
