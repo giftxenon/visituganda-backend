@@ -9,9 +9,9 @@ import ug.visituganda.visituganda.dto.LoginRequest;
 import ug.visituganda.visituganda.dto.response.AuthenticationResponse;
 import ug.visituganda.visituganda.dto.request.user_request.BusinessRegisterRequest;
 import ug.visituganda.visituganda.dto.request.user_request.CustomerRegisterRequest;
-import ug.visituganda.visituganda.dto.response.LoginResponse;
 import ug.visituganda.visituganda.service.AuthService;
 import ug.visituganda.visituganda.service.LoginService;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -22,73 +22,41 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register/business")
-    public ResponseEntity<AuthenticationResponse> registerBusiness(
-            @Valid @RequestBody BusinessRegisterRequest request) {
+    public ResponseEntity<?> registerBusiness(@Valid @RequestBody BusinessRegisterRequest request) {
         try {
-            AuthenticationResponse response = authService.registerBusiness(request);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(authService.registerBusiness(request));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            // Always return JSON even on errors
-            AuthenticationResponse errorResponse = new AuthenticationResponse(
-                    null, null, null, null, null, null, null
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            ex.printStackTrace(); // Log the error
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Registration failed: " + ex.getMessage());
+        }
+    }
+
+    @PostMapping("/register/customer")
+    public ResponseEntity<?> registerCustomer(@Valid @RequestBody CustomerRegisterRequest request) {
+        try {
+            return ResponseEntity.ok(authService.registerCustomer(request));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace(); // Log the error
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Registration failed: " + ex.getMessage());
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             return ResponseEntity.ok(loginService.login(request));
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(
-                    new LoginResponse(
-                            null,
-                            false,
-                            ex.getMessage(),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null
-                    )
-            );
+            return ResponseEntity.badRequest().body(ex.getMessage());
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    new LoginResponse(
-                            null,
-                            false,
-                            "An unexpected error occurred",
-                            null,
-                            null,
-                            null,
-                            null,
-                            null
-                    )
-            );
-        }
-    }
-
-
-    @PostMapping("/register/customer")
-    public ResponseEntity<AuthenticationResponse> registerCustomer(
-            @Valid @RequestBody CustomerRegisterRequest request) {
-
-        try {
-            AuthenticationResponse response = authService.registerCustomer(request);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException ex) {
-            // Known validation error
-            AuthenticationResponse errorResponse = new AuthenticationResponse(
-                    null, null, null, null, null, null, null
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        } catch (Exception ex) {
-            // Catch-all for unexpected errors
-            AuthenticationResponse errorResponse = new AuthenticationResponse(
-                    null, null, null, null, null, null, null
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            ex.printStackTrace(); // Log the error
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Login failed: " + ex.getMessage());
         }
     }
 }

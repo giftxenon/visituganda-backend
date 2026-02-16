@@ -1,9 +1,8 @@
 package ug.visituganda.visituganda.service;
 
 import ug.visituganda.visituganda.dto.LoginRequest;
-import ug.visituganda.visituganda.dto.response.LoginResponse;
+import ug.visituganda.visituganda.dto.response.AuthenticationResponse;
 
 public interface LoginService {
-    LoginResponse login(LoginRequest request);
+    AuthenticationResponse login(LoginRequest request);
 }
-

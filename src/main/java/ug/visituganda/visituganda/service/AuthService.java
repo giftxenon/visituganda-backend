@@ -1,8 +1,6 @@
 package ug.visituganda.visituganda.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ug.visituganda.visituganda.dto.response.AuthenticationResponse;
@@ -11,31 +9,34 @@ import ug.visituganda.visituganda.dto.request.user_request.CustomerRegisterReque
 import ug.visituganda.visituganda.entity.User;
 import ug.visituganda.visituganda.modal.enums.UserType;
 import ug.visituganda.visituganda.repository.UserRepository;
+import ug.visituganda.visituganda.service_impl.JwtServiceImpl;
 
-import java.util.Map;
 
 @Service
-@RequiredArgsConstructor   // ← Only this one
-public class AuthService {  // ← REMOVE @Builder FROM HERE!
+@RequiredArgsConstructor
+public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final JwtServiceImpl jwtService;
 
     public AuthenticationResponse registerCustomer(CustomerRegisterRequest request) {
 
-        // 1. Password confirmation check
+        // 1️⃣ Password confirmation
         if (!request.password().equals(request.passwordConfirm())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
-        // 2. Check duplicate username
 
-
-       // 2. Check duplicate username
+        // 2️⃣ Check duplicate username/email
         if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new RuntimeException("Username already taken");
+            throw new IllegalArgumentException("Username already taken");
         }
 
+        if (request.email() != null && userRepository.findByEmail(request.email()).isPresent()) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+
+        // 3️⃣ Build user entity
         var user = User.builder()
                 .username(request.username())
                 .password(passwordEncoder.encode(request.password()))
@@ -45,14 +46,21 @@ public class AuthService {  // ← REMOVE @Builder FROM HERE!
                 .userType(UserType.CUSTOMER)
                 .build();
 
-        userRepository.save(user);   // ← Now works because repo is not null!
+        // 4️⃣ Save user and refresh entity to get ID
+        user = userRepository.save(user);
 
+        // 5️⃣ Generate JWT
         var jwt = jwtService.generateToken(user);
 
+        // 6️⃣ Build response
         return AuthenticationResponse.builder()
                 .token(jwt)
                 .userType(UserType.CUSTOMER.name())
                 .redirectUrl("/customer/dashboard")
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .msisdn(user.getMsisdn())
                 .build();
     }
 
@@ -63,7 +71,11 @@ public class AuthService {  // ← REMOVE @Builder FROM HERE!
         }
 
         if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new RuntimeException("Username already taken");
+            throw new IllegalArgumentException("Username already taken");
+        }
+
+        if (request.email() != null && userRepository.findByEmail(request.email()).isPresent()) {
+            throw new IllegalArgumentException("Email already registered");
         }
 
         var user = User.builder()
@@ -75,7 +87,7 @@ public class AuthService {  // ← REMOVE @Builder FROM HERE!
                 .userType(UserType.BUSINESS)
                 .build();
 
-        userRepository.save(user);
+        user = userRepository.save(user);
 
         var jwt = jwtService.generateToken(user);
 
@@ -83,6 +95,10 @@ public class AuthService {  // ← REMOVE @Builder FROM HERE!
                 .token(jwt)
                 .userType(UserType.BUSINESS.name())
                 .redirectUrl("/business/dashboard")
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .msisdn(user.getMsisdn())
                 .build();
     }
 }

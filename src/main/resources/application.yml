@@ -1,48 +1,52 @@
+# ===============================
+# Server Configuration
+# ===============================
 server:
-  port: ${PORT:8080}  # Render injects PORT automatically
+  port: ${PORT:8080}  # Render injects the port automatically
 
+# ===============================
+# Database Configuration
+# ===============================
 spring:
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DATABASE_URL}           # e.g., jdbc:postgresql://host:port/db
+    username: ${DB_USERNAME}       # Postgres username
+    password: ${DB_PASSWORD}       # Postgres password
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: update             # Use 'validate' in strict production
+    show-sql: true                 # Optional: logs SQL queries
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-#server:
-# port: 8080
-  # ← This is correct! Spring Boot runs on 8080
-  #spring:
-    #datasource:
-    #url: jdbc:postgresql://localhost:8833/visituganda   # PostgreSQL port = 8833
-    #username: postgres
-    #password: VisitUganda@2025
-  #driver-class-name: org.postgresql.Driver
-
-    #jpa:
-  #hibernate:
-    # ddl-auto: update
-      #show-sql: true
-      #properties:
-    # hibernate:
-      #  dialect: org.hibernate.dialect.PostgreSQLDialect
-
+# ===============================
+# JWT Configuration
+# ===============================
 app:
   jwt:
     secret: visitafrica-super-secret-jwt-key-2025-change-in-production!!
-    expiration-ms: 86400000   # 24 hours – perfect
+    expiration-ms: 86400000        # 24 hours
 
+# ===============================
+# Logging Configuration
+# ===============================
 logging:
   level:
     web: ERROR
-    org.springframework.web: DEBUG  # Changed to DEBUG for error details
+    org.springframework.web: DEBUG
     org.springframework.boot.autoconfigure: ERROR
     org.springframework.security: DEBUG
     ug.visituganda.visituganda.security: DEBUG
+
+# ===============================
+# CORS Configuration (Optional)
+# ===============================
+# Uncomment if your frontend is hosted on a separate domain (e.g., Vercel)
+#spring:
+#  web:
+#    cors:
+#      allowed-origins: https://your-frontend-domain.com
+#      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
