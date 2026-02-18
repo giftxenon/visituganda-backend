@@ -12,6 +12,8 @@ import ug.visituganda.visituganda.dto.request.user_request.CustomerRegisterReque
 import ug.visituganda.visituganda.service.AuthService;
 import ug.visituganda.visituganda.service.LoginService;
 
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -37,15 +39,20 @@ public class AuthController {
     @PostMapping("/register/customer")
     public ResponseEntity<?> registerCustomer(@Valid @RequestBody CustomerRegisterRequest request) {
         try {
+            // Success response
             return ResponseEntity.ok(authService.registerCustomer(request));
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            // Validation or business errors → 400
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", ex.getMessage()));
         } catch (Exception ex) {
-            ex.printStackTrace(); // Log the error
+            // Unexpected server errors → 500
+            ex.printStackTrace(); // Log the full stack trace
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Registration failed: " + ex.getMessage());
+                    .body(Map.of("message", "Registration failed. Please try again later."));
         }
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {

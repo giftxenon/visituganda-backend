@@ -11,7 +11,6 @@ import ug.visituganda.visituganda.modal.enums.UserType;
 import ug.visituganda.visituganda.repository.UserRepository;
 import ug.visituganda.visituganda.service_impl.JwtServiceImpl;
 
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -27,26 +26,31 @@ public class AuthService {
             throw new IllegalArgumentException("Passwords do not match");
         }
 
-        // 2️⃣ Check duplicate username/email
-        if (userRepository.findByUsername(request.username()).isPresent()) {
+        // 2️⃣ Check duplicate username/email (use trimmed values)
+        String username = request.username().trim();
+        String email = request.email() != null ? request.email().trim() : null;
+        String msisdn = request.msisdn() != null ? request.msisdn().trim() : null;
+        String fullName = request.fullName().trim();
+
+        if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already taken");
         }
 
-        if (request.email() != null && userRepository.findByEmail(request.email()).isPresent()) {
+        if (email != null && userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already registered");
         }
 
-        // 3️⃣ Build user entity
+        // 3️⃣ Build user entity (SANITIZED)
         var user = User.builder()
-                .username(request.username())
+                .username(username)
                 .password(passwordEncoder.encode(request.password()))
-                .fullName(request.fullName())
-                .email(request.email())
-                .msisdn(request.msisdn())
+                .fullName(fullName)
+                .email(email)
+                .msisdn(msisdn)
                 .userType(UserType.CUSTOMER)
                 .build();
 
-        // 4️⃣ Save user and refresh entity to get ID
+        // 4️⃣ Save user
         user = userRepository.save(user);
 
         // 5️⃣ Generate JWT
@@ -70,20 +74,25 @@ public class AuthService {
             throw new IllegalArgumentException("Passwords do not match");
         }
 
-        if (userRepository.findByUsername(request.username()).isPresent()) {
+        String username = request.username().trim();
+        String email = request.email() != null ? request.email().trim() : null;
+        String msisdn = request.msisdn() != null ? request.msisdn().trim() : null;
+        String fullName = request.fullName().trim();
+
+        if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already taken");
         }
 
-        if (request.email() != null && userRepository.findByEmail(request.email()).isPresent()) {
+        if (email != null && userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already registered");
         }
 
         var user = User.builder()
-                .username(request.username())
+                .username(username)
                 .password(passwordEncoder.encode(request.password()))
-                .fullName(request.fullName())
-                .email(request.email())
-                .msisdn(request.msisdn())
+                .fullName(fullName)
+                .email(email)
+                .msisdn(msisdn)
                 .userType(UserType.BUSINESS)
                 .build();
 
@@ -102,3 +111,4 @@ public class AuthService {
                 .build();
     }
 }
+
