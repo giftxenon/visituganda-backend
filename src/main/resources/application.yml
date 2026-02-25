@@ -5,30 +5,39 @@ server:
   port: ${PORT:8080}  # Render injects the port automatically
 
 # ===============================
-# Database Configuration
+# Spring Configuration
 # ===============================
 spring:
   datasource:
     url: ${DATABASE_URL}           # e.g., jdbc:postgresql://host:port/db
-    username: ${DB_USERNAME}       # Postgres username
-    password: ${DB_PASSWORD}       # Postgres password
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update             # Use 'validate' in strict production
-    show-sql: true                 # Optional: logs SQL queries
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ===============================
+  # Multipart / File Upload Configuration
+  # ===============================
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 # ===============================
 # JWT Configuration
 # ===============================
 app:
   jwt:
-    secret: visituganda-secret-jwt-key-2025-production-secure-key-render!!xx
-    expiration-ms: 86400000    # 24 hours
+    secret: ${JWT_SECRET:visituganda-secret-jwt-key}
+    expiration-ms: 86400000
 
 # ===============================
 # Logging Configuration
@@ -40,14 +49,3 @@ logging:
     org.springframework.boot.autoconfigure: ERROR
     org.springframework.security: DEBUG
     ug.visituganda.visituganda.security: DEBUG
-
-# ===============================
-# CORS Configuration (Optional)
-# ===============================
-# Uncomment if your frontend is hosted on a separate domain (e.g., Vercel)
-#spring:
-#  web:
-#    cors:
-#      allowed-origins: https://your-frontend-domain.com
-#      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
-

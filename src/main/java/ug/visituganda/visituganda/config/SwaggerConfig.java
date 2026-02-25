@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "Visit Uganda API",
                 version = "1.0",
-                description = "Customer & Business Registration + JWT Auth"
+                description = "Customer & BusinessPostRemove Registration + JWT Auth"
         )
 )
 public class SwaggerConfig {

@@ -19,14 +19,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtServiceImpl jwtService;
 
+    // -------------------- CUSTOMER REGISTRATION --------------------
     public AuthenticationResponse registerCustomer(CustomerRegisterRequest request) {
 
-        // 1️⃣ Password confirmation
         if (!request.password().equals(request.passwordConfirm())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
 
-        // 2️⃣ Check duplicate username/email (use trimmed values)
         String username = request.username().trim();
         String email = request.email() != null ? request.email().trim() : null;
         String msisdn = request.msisdn() != null ? request.msisdn().trim() : null;
@@ -40,7 +39,6 @@ public class AuthService {
             throw new IllegalArgumentException("Email already registered");
         }
 
-        // 3️⃣ Build user entity (SANITIZED)
         var user = User.builder()
                 .username(username)
                 .password(passwordEncoder.encode(request.password()))
@@ -50,13 +48,10 @@ public class AuthService {
                 .userType(UserType.CUSTOMER)
                 .build();
 
-        // 4️⃣ Save user
         user = userRepository.save(user);
 
-        // 5️⃣ Generate JWT
         var jwt = jwtService.generateToken(user);
 
-        // 6️⃣ Build response
         return AuthenticationResponse.builder()
                 .token(jwt)
                 .userType(UserType.CUSTOMER.name())
@@ -68,6 +63,7 @@ public class AuthService {
                 .build();
     }
 
+    // -------------------- BUSINESS REGISTRATION --------------------
     public AuthenticationResponse registerBusiness(BusinessRegisterRequest request) {
 
         if (!request.password().equals(request.passwordConfirm())) {
@@ -110,5 +106,37 @@ public class AuthService {
                 .msisdn(user.getMsisdn())
                 .build();
     }
-}
 
+    // -------------------- LOGIN METHOD --------------------
+    public AuthenticationResponse login(String loginField, String password) {
+        // 1️⃣ Find user by username or email
+        User user = userRepository.findByUsername(loginField)
+                .or(() -> userRepository.findByEmail(loginField))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // 2️⃣ Check password
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Invalid credentials");
+        }
+
+        // 3️⃣ Generate JWT
+        String jwt = jwtService.generateToken(user);
+
+        // 4️⃣ Determine redirect URL
+        String redirectUrl = switch (user.getUserType()) {
+            case BUSINESS -> "/business/dashboard";
+            case CUSTOMER -> "/customer/dashboard";
+        };
+
+        // 5️⃣ Build and return response
+        return AuthenticationResponse.builder()
+                .token(jwt)
+                .userType(user.getUserType().name())
+                .redirectUrl(redirectUrl)
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .msisdn(user.getMsisdn())
+                .build();
+    }
+}

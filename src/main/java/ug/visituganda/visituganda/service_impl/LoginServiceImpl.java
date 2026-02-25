@@ -9,10 +9,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ug.visituganda.visituganda.dto.LoginRequest;
 import ug.visituganda.visituganda.dto.response.AuthenticationResponse;
+import ug.visituganda.visituganda.dto.response.LoginResponse;
 import ug.visituganda.visituganda.entity.User;
+import ug.visituganda.visituganda.modal.enums.UserType;
 import ug.visituganda.visituganda.repository.UserRepository;
 import ug.visituganda.visituganda.service.LoginService;
-import ug.visituganda.visituganda.service_impl.JwtServiceImpl;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class LoginServiceImpl implements LoginService {
     private final JwtServiceImpl jwtService;
 
     @Override
-    public AuthenticationResponse login(LoginRequest request) {
+    public AuthenticationResponse  login(LoginRequest request) {
 
         String login = request.loginField().trim();
 
@@ -55,9 +56,7 @@ public class LoginServiceImpl implements LoginService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .msisdn(user.getMsisdn())
-                .redirectUrl(user.getUserType() == null
-                        ? "/"
-                        : user.getUserType() == ug.visituganda.visituganda.modal.enums.UserType.CUSTOMER
+                .redirectUrl(user.getUserType() == UserType.CUSTOMER
                         ? "/customer/dashboard"
                         : "/business/dashboard")
                 .build();

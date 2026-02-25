@@ -6,7 +6,7 @@ public enum UserType {
 
 
     CUSTOMER("Customer logs in to explore visit Uganda use case" ),
-    BUSINESS("Business logs in to market their businesses on visit");
+    BUSINESS("BusinessPostRemove logs in to market their businesses on visit");
 
 
     private final String description;

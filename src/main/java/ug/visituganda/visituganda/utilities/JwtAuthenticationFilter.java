@@ -20,7 +20,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtServiceImpl jwtServiceImpl; // Interface instead of Impl
+    private final JwtServiceImpl jwtServiceImpl;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -49,9 +49,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String username = jwtServiceImpl.extractUsername(jwt);
+            System.out.println("📌 Extracted username from JWT: " + username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                // DEBUG LINES
+                System.out.println("👤 Loaded user: " + userDetails.getUsername());
+                System.out.println("🔑 Authorities: " + userDetails.getAuthorities());
+                System.out.println("✅ Token valid: " + jwtServiceImpl.isTokenValid(jwt, userDetails));
 
                 if (jwtServiceImpl.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken =
@@ -63,12 +69,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
-
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("🔐 Authentication set in SecurityContext");
                 }
             }
         } catch (Exception e) {
-            // Invalid token → skip authentication
             System.out.println("⚠️ JWT validation failed: " + e.getMessage());
         }
 

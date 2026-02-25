@@ -9,9 +9,12 @@ import ug.visituganda.visituganda.dto.LoginRequest;
 import ug.visituganda.visituganda.dto.response.AuthenticationResponse;
 import ug.visituganda.visituganda.dto.request.user_request.BusinessRegisterRequest;
 import ug.visituganda.visituganda.dto.request.user_request.CustomerRegisterRequest;
+import ug.visituganda.visituganda.dto.response.LoginResponse;
+import ug.visituganda.visituganda.entity.User;
 import ug.visituganda.visituganda.service.AuthService;
 import ug.visituganda.visituganda.service.LoginService;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -22,6 +25,7 @@ public class AuthController {
 
     private final LoginService loginService;
     private final AuthService authService;
+
 
     @PostMapping("/register/business")
     public ResponseEntity<?> registerBusiness(@Valid @RequestBody BusinessRegisterRequest request) {
@@ -53,17 +57,13 @@ public class AuthController {
         }
     }
 
-
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        try {
-            return ResponseEntity.ok(loginService.login(request));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        } catch (Exception ex) {
-            ex.printStackTrace(); // Log the error
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Login failed: " + ex.getMessage());
-        }
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request) {
+        AuthenticationResponse response = authService.login(
+                request.loginField(),
+                request.password()
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
