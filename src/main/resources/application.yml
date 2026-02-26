@@ -36,7 +36,7 @@ spring:
 # ===============================
 app:
   jwt:
-    secret: ${JWT_SECRET:visituganda-secret-jwt-key}
+    secret: "visitafrica-super-secret-jwt-key-2025-change-in-production!!-extra-long-to-64-chars!!"
     expiration-ms: 86400000
 
 # ===============================
