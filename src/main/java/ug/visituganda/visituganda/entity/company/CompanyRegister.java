@@ -1,10 +1,17 @@
-package ug.visituganda.visituganda.entity.Business;
+package ug.visituganda.visituganda.entity.company;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import ug.visituganda.visituganda.entity.User;
 import ug.visituganda.visituganda.modal.enums.BusinessCategory;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import ug.visituganda.visituganda.entity.User;
+import ug.visituganda.visituganda.modal.CreateCar;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "registered_businesses")
@@ -13,11 +20,12 @@ import ug.visituganda.visituganda.modal.enums.BusinessCategory;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BusinessRegister {
+public class CompanyRegister {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "company_name", nullable = false)
     private String companyName;
 
@@ -36,7 +44,7 @@ public class BusinessRegister {
 
     private Double rating = 0.0;
 
-    // Store image as bytea in PostgreSQL
+    @JsonIgnore
     @Column(name = "logo", columnDefinition = "bytea")
     private byte[] logo;
 
@@ -47,7 +55,26 @@ public class BusinessRegister {
     @Column(nullable = false)
     private BusinessCategory category;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+    // One-to-many relation with cars
+    @JsonIgnore
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CreateCar> cars = new ArrayList<>();
+
+    @Column(updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @Column
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    public void addCar(CreateCar car) {
+        cars.add(car);
+        car.setCompany(this);
+    }
 }

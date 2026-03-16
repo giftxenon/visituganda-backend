@@ -2,50 +2,47 @@
 # Server Configuration
 # ===============================
 server:
-  port: ${PORT:8080}  # Render injects the port automatically
+  port: ${PORT:8000}
 
 # ===============================
-# Spring Configuration
+# Database Configuration
 # ===============================
 spring:
   datasource:
-    url: ${DATABASE_URL}           # e.g., jdbc:postgresql://host:port/db
-    username: ${DB_USERNAME}
+    url: ${DATABASE_URL:jdbc:postgresql://db.rcnywheoazmghydwatnt.supabase.co:5432/postgres}
+    username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 30000
+      connection-timeout: 20000
+
   jpa:
     hibernate:
-      ddl-auto: update             # Use 'validate' in strict production
-    show-sql: true
+      ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-
-  # ===============================
-  # Multipart / File Upload Configuration
-  # ===============================
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 10MB
-      max-request-size: 10MB
+        format_sql: true
 
 # ===============================
 # JWT Configuration
 # ===============================
 app:
   jwt:
-    secret: "visitafrica-super-secret-jwt-key-2025-change-in-production!!-extra-long-to-64-chars!!"
-    expiration-ms: 86400000
+    secret: ${JWT_SECRET:visituganda-secret-jwt-key-2025-production-secure-key-render!!xx}
+    expiration-ms: ${JWT_EXPIRATION:86400000}
 
 # ===============================
 # Logging Configuration
 # ===============================
 logging:
   level:
-    web: ERROR
-    org.springframework.web: DEBUG
-    org.springframework.boot.autoconfigure: ERROR
-    org.springframework.security: DEBUG
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
     ug.visituganda.visituganda.security: DEBUG

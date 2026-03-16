@@ -2,6 +2,7 @@ package ug.visituganda.visituganda.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import ug.visituganda.visituganda.entity.company.CompanyPost;
 
 @Entity
 @Table(name = "business_posts")
@@ -29,7 +30,7 @@ public class BusinessPostRemove {
 
     @ManyToOne
     @JoinColumn(name = "business_id", nullable = false)
-    private ug.visituganda.visituganda.entity.Business.BusinessPost business;
+    private CompanyPost business;
 
     @Column(nullable = false)
     private boolean active = true;

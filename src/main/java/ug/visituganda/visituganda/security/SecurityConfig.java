@@ -32,13 +32,11 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
-    // 🔐 Password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 🔐 Authentication manager
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig
@@ -46,7 +44,6 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    // 🔐 Main security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -67,14 +64,25 @@ public class SecurityConfig {
                         // Public posts
                         .requestMatchers("/api/v1/posts/**").permitAll()
 
-                        // ✅ PUBLIC BUSINESS READ (CUSTOMERS)
+                        // ✅ PUBLIC car reads — anyone can view cars
+                        .requestMatchers(HttpMethod.GET, "/api/v1/cars/**").permitAll()
+
+                        // 🔐 Creating a car requires BUSINESS role
+                        .requestMatchers(HttpMethod.POST, "/api/v1/cars/**").hasRole("BUSINESS")
+
+                        // 🔐 My cars — requires authentication
+                        .requestMatchers(HttpMethod.GET, "/api/v1/cars/my-cars").hasRole("BUSINESS")
+
+                     //   .requestMatchers(HttpMethod.GET, "/api/v1/cars/**").permitAll()
+
+                        // ✅ PUBLIC business reads
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/businesses/public/**",
                                 "/api/v1/businesses/logo/**",
                                 "/api/v1/businesses/all"
                         ).permitAll()
 
-                        // 🔐 BUSINESS REGISTRATION
+                        // 🔐 Business registration
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/businesses/register"
                         ).hasRole("BUSINESS")
@@ -86,7 +94,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Everything else
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -95,7 +103,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔐 DAO authentication provider
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -104,7 +111,6 @@ public class SecurityConfig {
         return provider;
     }
 
-    // 🌍 CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

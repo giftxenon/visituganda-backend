@@ -1,4 +1,4 @@
-package ug.visituganda.visituganda.controller.business;
+package ug.visituganda.visituganda.controller.serviceProvider;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -8,12 +8,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ug.visituganda.visituganda.dto.request.CreateBusinessRequest;
+import ug.visituganda.visituganda.dto.request.CreateCompanyRequest;
 import ug.visituganda.visituganda.dto.response.BusinessResponse;
-import ug.visituganda.visituganda.entity.Business.BusinessRegister;
+import ug.visituganda.visituganda.entity.company.CompanyRegister;
 import ug.visituganda.visituganda.modal.enums.BusinessCategory;
-import ug.visituganda.visituganda.service.business.BusinessPostService;
-import ug.visituganda.visituganda.service.business.BusinessRegisterService;
+import ug.visituganda.visituganda.service.serviceProvider.CompanyPostService;
+import ug.visituganda.visituganda.service.serviceProvider.CompanyRegisterService;
 
 import java.util.List;
 
@@ -22,8 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BusinessController {
 
-    private final BusinessPostService service;
-    private final BusinessRegisterService businessRegisterService;
+    private final CompanyPostService service;
+    private final CompanyRegisterService businessRegisterService;
 
     // =========================================
     // 1️⃣ BUSINESS REGISTER PROFILE
@@ -72,7 +72,7 @@ public class BusinessController {
     @PostMapping("/list")
     public ResponseEntity<BusinessResponse> create(
             @RequestParam Long ownerId,
-            @RequestBody CreateBusinessRequest request
+            @RequestBody CreateCompanyRequest request
     ) {
         return ResponseEntity.ok(service.createBusiness(request, ownerId));
     }
@@ -95,7 +95,7 @@ public class BusinessController {
     // 🔥 Used by CarRentalAllCompaniesList.jsx
     // =========================================
     @GetMapping("/all")
-    public ResponseEntity<List<BusinessRegister>> getAllBusinesses() {
+    public ResponseEntity<List<CompanyRegister>> getAllBusinesses() {
         return ResponseEntity.ok(
                 businessRegisterService.getAllBusinesses()
         );
@@ -104,7 +104,7 @@ public class BusinessController {
     @GetMapping("/logo/{id}")
     public ResponseEntity<byte[]> getBusinessLogo(@PathVariable Long id) {
 
-        BusinessRegister business =
+        CompanyRegister business =
                 businessRegisterService.getBusinessById(id);
 
         if (business.getLogo() == null) {

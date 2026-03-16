@@ -124,7 +124,7 @@ public class AuthService {
 
         // 4️⃣ Determine redirect URL
         String redirectUrl = switch (user.getUserType()) {
-            case BUSINESS -> "/business/dashboard";
+            case BUSINESS -> "/business/dashboard/viewprofile";
             case CUSTOMER -> "/customer/dashboard";
         };
 

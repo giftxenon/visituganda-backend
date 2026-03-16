@@ -1,4 +1,4 @@
-package ug.visituganda.visituganda.entity.Business;
+package ug.visituganda.visituganda.entity.company;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +12,7 @@ import ug.visituganda.visituganda.modal.enums.BusinessCategory;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BusinessPost {
+public class CompanyPost {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
