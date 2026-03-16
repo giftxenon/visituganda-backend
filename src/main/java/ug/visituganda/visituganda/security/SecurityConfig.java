@@ -32,13 +32,11 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
-    // Password encoder bean
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Authentication manager bean
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig
@@ -46,47 +44,29 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    // Main security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // disable CSRF
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // enable CORS
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Allow preflight requests
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight
 
-                        // Auth endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
-
-                        // Public posts
                         .requestMatchers("/api/v1/posts/**").permitAll()
-
-                        // Public car reads
                         .requestMatchers(HttpMethod.GET, "/api/v1/cars/**").permitAll()
-
-                        // Protected car endpoints
                         .requestMatchers(HttpMethod.POST, "/api/v1/cars/**").hasRole("BUSINESS")
                         .requestMatchers(HttpMethod.GET, "/api/v1/cars/my-cars").hasRole("BUSINESS")
-
-                        // Public business endpoints
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/businesses/public/**",
                                 "/api/v1/businesses/logo/**",
                                 "/api/v1/businesses/all"
                         ).permitAll()
-
-                        // Business registration (protected)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/businesses/register")
-                        .hasRole("BUSINESS")
-
-                        // Swagger docs
+                        .requestMatchers(HttpMethod.POST, "/api/v1/businesses/register").hasRole("BUSINESS")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-
-                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -95,7 +75,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Authentication provider
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -104,23 +83,14 @@ public class SecurityConfig {
         return provider;
     }
 
-    // CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // Only allow your frontend origin in production
-        config.setAllowedOriginPatterns(List.of("https://visituganda-frontend.vercel.app"));
-
-        // Allow all standard HTTP methods
+        config.setAllowedOrigins(List.of("*"));
+       // config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // Allow all headers (including Authorization)
         config.setAllowedHeaders(List.of("*"));
-
-        // Allow credentials (cookies, auth headers)
         config.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
