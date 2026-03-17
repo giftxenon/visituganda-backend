@@ -10,16 +10,15 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.*;
+
 import ug.visituganda.visituganda.utilities.JwtAuthenticationFilter;
 
 import java.util.List;
@@ -48,28 +47,46 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // ✅ Enable CORS properly
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight
 
+                .authorizeHttpRequests(auth -> auth
+                        // ✅ VERY IMPORTANT: allow preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // ✅ Public endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/cars/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/cars/**").hasRole("BUSINESS")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/cars/my-cars").hasRole("BUSINESS")
-                        .requestMatchers(HttpMethod.GET,
+
+                        // ✅ Public business endpoints
+                        .requestMatchers(
                                 "/api/v1/businesses/public/**",
                                 "/api/v1/businesses/logo/**",
                                 "/api/v1/businesses/all"
                         ).permitAll()
+
+                        // ✅ Protected endpoints
                         .requestMatchers(HttpMethod.POST, "/api/v1/businesses/register").hasRole("BUSINESS")
+
+                        // 🔒 Fix order: specific first
+                        .requestMatchers(HttpMethod.GET, "/api/v1/cars/my-cars").hasRole("BUSINESS")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/cars/**").hasRole("BUSINESS")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/cars/**").permitAll()
+
+                        // Swagger
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
                         .anyRequest().authenticated()
                 )
+
                 .authenticationProvider(authenticationProvider())
+
+                // ✅ JWT filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -83,14 +100,19 @@ public class SecurityConfig {
         return provider;
     }
 
+    // ✅ FIXED CORS CONFIG (NO MORE "*")
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
-       // config.setAllowedOriginPatterns(List.of("*"));
+
+        config.setAllowedOrigins(List.of(
+                "https://visituganda-frontend.vercel.app"
+        ));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

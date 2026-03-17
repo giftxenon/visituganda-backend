@@ -2,6 +2,7 @@ package ug.visituganda.visituganda.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ import ug.visituganda.visituganda.service.LoginService;
 import java.util.HashMap;
 import java.util.Map;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -32,11 +33,12 @@ public class AuthController {
         try {
             return ResponseEntity.ok(authService.registerBusiness(request));
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", ex.getMessage())); // make same as customer
         } catch (Exception ex) {
-            ex.printStackTrace(); // Log the error
+            log.error("Business registration failed", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Registration failed: " + ex.getMessage());
+                    .body(Map.of("message", "Registration failed. Please try again later."));
         }
     }
 

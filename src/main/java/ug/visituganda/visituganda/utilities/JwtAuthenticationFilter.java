@@ -25,12 +25,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtServiceImpl jwtServiceImpl;
     private final UserDetailsService userDetailsService;
 
+    // ✅ Skip auth + public endpoints
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
+
         return path.startsWith("/api/v1/auth/")
                 || path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs");
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/api/v1/businesses/public")
+                || path.startsWith("/api/v1/businesses/logo")
+                || path.startsWith("/api/v1/businesses/all");
     }
 
     @Override
@@ -42,6 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
+        // ✅ No token → just continue (DO NOT BLOCK)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -51,34 +57,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String username = jwtServiceImpl.extractUsername(jwt);
-            System.out.println("📌 Extracted username from JWT: " + username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                // DEBUG LINES
-                System.out.println("👤 Loaded user: " + userDetails.getUsername());
-                System.out.println("🔑 Authorities: " + userDetails.getAuthorities());
-                System.out.println("✅ Token valid: " + jwtServiceImpl.isTokenValid(jwt, userDetails));
-
                 if (jwtServiceImpl.isTokenValid(jwt, userDetails)) {
+
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
                                     userDetails.getAuthorities()
                             );
+
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("🔐 Authentication set in SecurityContext");
                 }
             }
+
         } catch (Exception e) {
-            System.out.println("⚠️ JWT validation failed: " + e.getMessage());
+            log.warn("JWT validation failed: {}", e.getMessage());
         }
 
+        // ✅ Always continue filter chain
         filterChain.doFilter(request, response);
     }
 }
