@@ -5,16 +5,9 @@ spring:
   application:
     name: visituganda
 
-# ===============================
-# Server Configuration
-# ===============================
-server:
-  port: ${PORT:8080}
-
-# ===============================
-# Database Configuration
-# ===============================
-spring:
+  # ===============================
+  # Database Configuration
+  # ===============================
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://db.rcnywheoazmghydwatnt.supabase.co:5432/postgres}
     username: ${DB_USERNAME:postgres}
@@ -35,6 +28,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+
+# ===============================
+# Server Configuration
+# ===============================
+server:
+  port: ${PORT:8080}
 
 # ===============================
 # JWT Configuration
